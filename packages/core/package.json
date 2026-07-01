@@ -1,12 +1,30 @@
 {
   "name": "@feedbackkit/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Framework-agnostic core for feedbackkit — composer, element-picker, position, and the feedback/assist contract.",
+  "keywords": ["feedback", "feedbackkit", "widget", "composer"],
+  "license": "MIT",
+  "author": "Erik Haavik",
+  "homepage": "https://github.com/haavikerik-lab/feedbackkit#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/haavikerik-lab/feedbackkit.git", "directory": "packages/core" },
+  "publishConfig": { "access": "public" },
+  "sideEffects": false,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "exports": { ".": "./src/index.ts" },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "feedbackkit-dev": "./src/index.ts",
+      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+    }
+  },
+  "files": ["dist", "src"],
   "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"test/**/*.test.ts\""
+    "test": "node --conditions feedbackkit-dev --import tsx --test \"test/**/*.test.ts\""
   }
 }

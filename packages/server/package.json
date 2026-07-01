@@ -1,18 +1,34 @@
 {
   "name": "@feedbackkit/server",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Server handlers and framework routes for feedbackkit — Anthropic-backed AI assist + feedback submission.",
+  "keywords": ["feedback", "feedbackkit", "ai", "anthropic", "server"],
+  "license": "MIT",
+  "author": "Erik Haavik",
+  "homepage": "https://github.com/haavikerik-lab/feedbackkit#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/haavikerik-lab/feedbackkit.git", "directory": "packages/server" },
+  "publishConfig": { "access": "public" },
+  "sideEffects": false,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "feedbackkit-dev": "./src/index.ts",
+      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+    }
   },
+  "files": ["dist", "src"],
   "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "tsup",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test \"test/**/*.test.ts\""
+    "test": "node --conditions feedbackkit-dev --import tsx --test \"test/**/*.test.ts\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.107.0",
-    "@feedbackkit/core": "*"
+    "@feedbackkit/core": "^0.1.0"
   }
 }
