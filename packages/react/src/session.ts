@@ -1,7 +1,9 @@
 import { useReducer } from "react";
-import type { PickerMode, PickedElement, ComposerSegment } from "@feedbackkit/core";
+import { dedupeElements } from "@feedbackkit/core";
+import type { PickerMode, PickedElement, ComposerSegment, AssistMessage } from "@feedbackkit/core";
 
 export type SessionStatus = "idle" | "sending" | "sent" | "error";
+export type AiStatus = "idle" | "thinking" | "error";
 
 export type SessionState = {
   open: boolean;
@@ -10,6 +12,12 @@ export type SessionState = {
   scenario: { id: string; title: string } | null;
   categories: string[];
   status: SessionStatus;
+  transcript: AssistMessage[];
+  pickedElements: PickedElement[];
+  categoriesTouched: boolean;
+  aiStatus: AiStatus;
+  aiError: string | null;
+  draft: string | null;
 };
 
 export type SessionAction =
@@ -24,7 +32,14 @@ export type SessionAction =
   | { type: "toggleCategory"; code: string }
   | { type: "sendStart" }
   | { type: "sendOk" }
-  | { type: "sendError" };
+  | { type: "sendError" }
+  | { type: "aiChatStart" }
+  | { type: "aiChatOk"; userContent: string; elements: PickedElement[]; reply: string; categories: string[] }
+  | { type: "aiDraftStart" }
+  | { type: "aiDraftOk"; draft: string }
+  | { type: "setDraft"; text: string }
+  | { type: "backToChat" }
+  | { type: "aiError"; message: string };
 
 export const initialState: SessionState = {
   open: false,
@@ -33,6 +48,12 @@ export const initialState: SessionState = {
   scenario: null,
   categories: [],
   status: "idle",
+  transcript: [],
+  pickedElements: [],
+  categoriesTouched: false,
+  aiStatus: "idle",
+  aiError: null,
+  draft: null,
 };
 
 export function reducer(state: SessionState, action: SessionAction): SessionState {
@@ -71,17 +92,44 @@ export function reducer(state: SessionState, action: SessionAction): SessionStat
       const has = state.categories.includes(action.code);
       return {
         ...state,
+        categoriesTouched: true,
         categories: has
           ? state.categories.filter((c) => c !== action.code)
           : [...state.categories, action.code],
       };
     }
     case "sendStart":
-      return { ...state, status: "sending" };
+      return { ...state, status: "sending", aiStatus: "idle", aiError: null };
     case "sendOk":
       return { ...state, status: "sent" };
     case "sendError":
       return { ...state, status: "error" };
+    case "aiChatStart":
+      return { ...state, aiStatus: "thinking", aiError: null };
+    case "aiChatOk":
+      return {
+        ...state,
+        transcript: [
+          ...state.transcript,
+          { role: "user", content: action.userContent },
+          { role: "assistant", content: action.reply },
+        ],
+        pickedElements: dedupeElements([...state.pickedElements, ...action.elements]),
+        segments: [],
+        aiStatus: "idle",
+        aiError: null,
+        categories: state.categoriesTouched ? state.categories : action.categories,
+      };
+    case "aiDraftStart":
+      return { ...state, aiStatus: "thinking", aiError: null };
+    case "aiDraftOk":
+      return { ...state, draft: action.draft, aiStatus: "idle", aiError: null };
+    case "setDraft":
+      return { ...state, draft: action.text };
+    case "backToChat":
+      return { ...state, draft: null };
+    case "aiError":
+      return { ...state, aiStatus: "error", aiError: action.message };
   }
 }
 

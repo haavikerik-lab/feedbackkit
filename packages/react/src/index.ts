@@ -1,2 +1,2 @@
 export { FeedbackWidget } from "./FeedbackWidget";
-export type { FeedbackWidgetProps, SubmitConfig, Identity } from "./types";
+export type { FeedbackWidgetProps, SubmitConfig, AssistConfig, Identity } from "./types";
